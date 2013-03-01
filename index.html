@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>EchoFetch</title>
+    <meta name="description" content="EchoFetch accesses the EchoNest API.">
+    <meta name="author" content="M Vincent Miller">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+  
+    <!-- Styles --> 
+    <link type="text/css" href="css/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+    <link href="bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="css/demo.css" rel="stylesheet">
+    <style type="text/css">
+      /* Override some defaults */
+      html, body {
+        background-color: #eee;
+      }
+      body {
+        padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
+      font-family: 'GeometrySoftProBoldN', sans-serif;
+      }
+      .container > footer p {
+        text-align: center; /* center align it with the container */
+      }
+      .container {
+        width: 820px; 
+        /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16*/
+      }
+
+      /* The white background content wrapper */
+      .container > .content {
+        background-color: #fff;
+        padding: 20px;
+        margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+        -webkit-border-radius: 0 0 6px 6px;
+           -moz-border-radius: 0 0 6px 6px;
+                border-radius: 0 0 6px 6px;
+        -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+           -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+                box-shadow: 0 1px 2px rgba(0,0,0,.15);
+      }
+
+      /* Page header tweaks */
+      .page-header {
+        background-color: #f5f5f5;
+        padding: 20px 20px 10px;
+        margin: -20px -20px 20px;
+      }
+
+      /* Styles you shouldn't keep as they are for displaying this base example only */
+      .content .span10,
+      .content .span4 {
+        min-height: 500px;
+      }
+      /* Give a quick and non-cross-browser friendly divider */
+      .content .span4 {
+        margin-left: 0;
+        padding-left: 19px;
+        border-left: 1px solid #eee;
+      }
+
+      .topbar .btn {
+        border: 0;
+      }
+#artistImages img {
+
+  width: 150px;
+  height: 150px;
+}
+
+input {
+  width: 150px;
+}
+button {
+  margin-left: 15px;
+}
+.alert-message.block-message.warning {
+  background: blue;
+  color: #fff;
+}
+
+.alert-message.block-message.warning h3 {
+  background: blue;
+  color: #fff;
+}
+.well {
+background: #FF6600;
+color: #fff;
+}
+
+.page-header {
+  background: #FF6600;
+color: #fff;
+}
+
+#tabs {
+
+  font-family: 'GeometrySoftProBoldN';
+}
+    </style>
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.4.4.js" type="text/javascript"></script>
+      <script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js" type="text/javascript">
+      </script>
+      <script src="js/jquery.echonest.js" type="text/javascript"></script>
+ <script src="js/nest.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+var band;
+//window.band = $("the_artist").val();
+function popin() {
+var band = $("#the_artist").val();
+  if (band == null ) {band = 'Noah23'}
+
+  //populate using jQuery EchoNest Plugin:
+            var echonest = new EchoNest("WDYCZCJAXVBSXH24U");
+            // get a single audio url
+            // get a set of artist images and output as a bunch of images to the page (limited to first five results)
+            echonest.artist(band).images( function(imageCollection) {
+                $("#band").html(band);
+              $('#artistImages').html( imageCollection.to_html('<a href="${url}"><img src="${url}"></a>') );
+            }, {results: 12});
+            echonest.artist(band).audio( function(audioCollection) {
+              $('#artistAudioURL').html('<a href="' + audioCollection.data.audio[0].url + '">' + audioCollection.data.audio[0].url + '</a>');
+            
+            }); 
+            // get the second Radiohead biography by artist id and output it onto the page, also output the site it came from and the license used. Nested items are available through a prefix. E.g. "license_type"
+            echonest.artist(band).biographies( function(biographyCollection) {
+              $("#artistProfile").html( biographyCollection.at(10).to_html('<p>${text} <br/>by: <strong>${site} - <span class="license">${license_type}</span></strong></p>') );
+            });
+            // get a summary of the artist blogs plus a count of the available items on the server, where we started from and how many items in our local collection.
+            echonest.artist(band).blogs( function(blogCollection) {
+              $("#artistBlogs").html( blogCollection.to_html('<p>${summary}<br/><span class="total">Total: </span> | <span class="started_at">Started At: </span> | <span class="size">Size of Collection: </span></p>') );
+              $("#artistBlogs .total").append( blogCollection.total() );
+              $("#artistBlogs .started_at").append( blogCollection.start() );
+              $("#artistBlogs .size").append( blogCollection.size() );
+            });
+            // how well do people know Trentemøller?
+            echonest.artist(band).familiarity( function(familiarity) {
+              $('#artistFamiliarity').html( familiarity.to_html('<p>"${familiarity}"</p>') );
+            });
+            // how hot are The Glitch Mob?
+            echonest.artist(band).hotttnesss( function(hotttnesss) {
+              $('#artistHotttnesss').html( hotttnesss.to_html('<p>"${hotttnesss}"</p>') );
+            });
+            // catching up with Depeche Mode (a.k.a what's news)
+            echonest.artist(band).news( function(newsCollection) {
+              $('#artistNews').html( newsCollection.to_html('<p>${summary}<br/><strong>Posted on:</strong> ${date_posted}</p>') );
+            });
+            // get a profile on The band, including artist id and foreign catalog id
+            echonest.artist(band).profile( function(profile) {
+              $('#artistProfile').html( profile.to_html('<dl><dt>Artist Id</dt><dd>${id}</dd><dt>Foreign Catalog Id</dt><dd>${foreign_ids_catalog}</dd></dl>') );
+            });
+            // get reviews about Radiohead
+            echonest.artist(band).reviews( function(reviewCollection) {
+              $('#artistReviews').html( reviewCollection.to_html('<p>${summary}</p>') );
+            });
+            // perform an artist search using a search options hash
+            searchOptions = {
+              name: band,
+              fuzzy_match: true,
+              bucket: 'id:7digital'
+            };
+            
+            echonest.artist(band).search( function(searchResultsCollection) {
+              $('#artistSearchResults').html( searchResultsCollection.to_html('${name} - <strong>${foreign_ids_0_foreign_id}</strong><br/>') );
+            }, searchOptions);
+            
+            // what songs did Depeche Mode write?
+            echonest.artist(band).songs( function(songsCollection) {
+              $('#artistSongs').html( songsCollection.to_html('${title}<br/>') );
+            });
+            
+            
+            // which artists are similar to Muse?
+            echonest.artist(band).similar( function(similarCollection) {
+              $('#artistSimilar').html( similarCollection.to_html('${name}<br/>') );
+            });
+            
+            
+            // what terms are used to descript the artist David Bowie?
+            echonest.artist(band).terms( function(termsCollection) {
+              $('#artistTerms').html( termsCollection.to_html('<strong>${name}</strong><br/>') );
+            });
+            
+            // what artists are currently "hottt"? (this should return a hotttnesss value but doesn't)
+            echonest.artist().top_hottt( function(topHotttCollection) {
+              $('#artistTopHottt').html( topHotttCollection.to_html('<strong>${name}</strong> ${hotttnesss}<br/>') );
+            });
+            
+            // what artists are currently "hottt"? (this should return a hotttnesss value but doesn't)
+            echonest.artist().top_terms( function(topTermsCollection) {
+              $('#artistTopTerms').html( topTermsCollection.to_html('<strong>${name}</strong> - ${frequency}<br/>') );
+            });
+            
+            // give me the amazon.com link for Pink Floyd
+            echonest.artist(band).urls( function(urlsCollection) {
+              $('#artistUrls').html( urlsCollection.to_html('<a href="${amazon_url}">${amazon_url}</a>') );
+            });
+            
+            
+          // give me videos
+            echonest.artist(band).video( function(videoCollection) {
+              $('#artistVideos').html( videoCollection.to_html('${title} <br/><a href=" ' + '${url}' + '">${url} </a><br/> ') );
+            }); 
+            // get a profile on The Cure, including artist id and foreign catalog id
+            echonest.artist(band).profile( function(profile) {
+              $('#artistProfile').html( profile.to_html('<dl><dt>Artist Id</dt><dd>${id}</dd><dt>Foreign Catalog Id</dt><dd>${foreign_ids_catalog}</dd></dl>') );
+            }); 
+
+ // get a set of "band" audio and output as HTML5 audio tags to the page
+            echonest.artist(band).audio( function(audioCollection) {
+              $("#artistAudio").html( audioCollection.to_html('<p>${artist} - ${title} <br /><audio src="${url}" controls preload="none"></audio></p>') );
+           });
+//Nest.js is nifty but need to learn how to present 'results'
+ var myNest = nest.nest("WDYCZCJAXVBSXH24U");
+
+var a = myNest.artist({name: band});
+var b = myNest.artist({id: "#"});
+a.songs({results: 10, start: 5}, function(err, results) {
+    if (err) {
+        console.log("there was an error...");
+        return;
+    }
+    var spliff = JSON.stringify(results);
+    console.log(spliff);
+
+      alert('hey' + spliff);
+/*
+$.getJSON('http://developer.echonest.com/api/v4/artist/profile?api_key=FILDTEOIK2HBORODV&name=weezer&bucket=hotttnesss&bucket=familiarity&bucket=terms', function(data) {
+  var items = [];
+ alert(data);
+  $.each(data, function(key, val) {
+    items.push('<li id="' + key + '">' + val + '</li>');
+  });
+ 
+  $('<ul/>', {
+    'class': 'my-new-list',
+    html: items.join('')
+  }).appendTo('#artistProfile');
+});
+*/
+$('#artistProfile').html(spliff);
+});
+} //end popin()
+ 
+$(document).ready(function () {
+
+    $.getJSON('http://developer.echonest.com/api/v4/artist/profile?api_key=WDYCZCJAXVBSXH24U&name=weezer&bucket=hotttnesss&bucket=familiarity&bucket=terms', null, function (data) {
+            // this would append whatever the json returns for 'total' 
+            // inside an element on your page with an id of 'resultsCount':
+            $('#test').append(data.total); 
+          });   
+
+});
+
+function populate_new() {
+$("#the_artist").val('Noah23');
+popin();
+ }//end populate_new()
+populate_new();
+function populate() {
+// var band = $("#the_artist").val();//use entry field value
+popin();
+}//end populate()
+
+
+</script>
+  </head>
+
+  <body>
+
+  <!--[if IE]>
+  <link rel="stylesheet" type="text/css" href="css/custom-theme/jquery.ui.1.8.16.ie.css"/>
+  <![endif]-->
+
+
+
+<script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.4/underscore-min.js"></script>
+<script src="http://ajax.cdnjs.com/ajax/libs/backbone.js/0.3.3/backbone-min.js"></script>
+<div class="container">
+<div id="result"></div>
+      <div class="content">
+        <div class="page-header">
+          <h1>EchoFetch <small>jQuery Access to the EchoNest API with <em>style</em></small></h1>
+          <h3>Enter a band or musical artist: <input type="text" id="the_artist" value="Noah 23"/><button type="submit" id="the_button" class="go">GO</button></h3>
+          
+ 
+        </div>
+
+        <div class="row">
+
+          <!--left col-->
+        <div class="span10">
+       <h2 class="demoHeaders"><div id="band" class="band"></div></h2>
+ <div id="artistImages"></div>
+<!-- Tabs -->
+      
+           
+            <div id="tabs">
+              <ul>
+                <li><a href="#tabs-1">Reviews</a></li>
+                <li><a href="#tabs-2">Blogs</a></li>
+                <li><a href="#tabs-3">News</a></li>
+                <li><a href="#tabs-4">Bio</a></li>
+              </ul>
+              <div id="tabs-1"><div id="artistReviews"></div></div>
+              <div id="tabs-2"><div id="artistBlogs"></div></div>
+              <div id="tabs-3"><div id="artistNews"></div></div>
+              <div id="tabs-4"><div id="artistProfile"></div></div>
+            </div>
+            <!--end tabs-->
+<p>&nbsp;</p>
+          <!--welcome-->
+          <div class="alert-message block-message warning">      
+            
+            <h3>Current Top Hottt Artists</h3>
+    <div id="artistTopHottt"></div>
+          </div>
+          <!--end welcome-->  
+          <p>&nbsp;</p>
+        <!--notice-->
+        <div class="well">
+       <h3>Current Top Terms</h3>
+    <div id="artistTopTerms"></div>
+        </div>
+          </div>
+          <!--end col-->
+<!--right col-->
+          <div class="span4">
+          <h2 class="demoHeaders">Audio</h2>
+<div id="artistAudio"></div>
+            <h2 class="demoHeaders">Genre</h2>
+<div id="artistTerms"></div> 
+<h2 class="demoHeaders">Similar Artists</h2>
+<div id="artistSimilar"></div>
+<h2 class="demoHeaders">Songs</h2>
+  <div id="artistSongs"></div>
+  <h2 class="demoHeaders">Mp3 Link</h2>
+  <div id="artistAudioURL"></div>
+<h2 class="demoHeaders">Video</h2>
+<div id="artistVideos"></div>
+      </div>
+          <!--end col-->
+           </div>
+      </div>
+<footer>
+        <p>&copy; mvincent.co 2013. All rights reserved by their respective holders.</p>
+      </footer>
+    </div> <!-- /container -->
+ <!--Backbone.js stuff:
+ <center>  
+<button id="add-friend">Add Friend</button>
+<ul id="friends-list">
+</ul>
+<ul id="friends-list2">
+</ul>
+</center>
+-->
+        <!--scripts-->
+        <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+                <!--daterangepicker-->
+        <script type="text/javascript" src="third-party/jQuery-UI-Date-Range-Picker/js/date.js"></script>
+        <script type="text/javascript" src="third-party/jQuery-UI-Date-Range-Picker/js/daterangepicker.jQuery.js"></script>
+<!--wijmo-->
+        <script src="third-party/wijmo/jquery.mousewheel.min.js" type="text/javascript"></script>
+        <script src="third-party/wijmo/jquery.bgiframe-2.1.3-pre.js" type="text/javascript"></script>
+        <script src="third-party/wijmo/jquery.wijmo-open.1.5.0.min.js" type="text/javascript"></script>
+        <!-- FileInput -->
+        <script src="third-party/jQuery-UI-FileInput/js/enhance.min.js" type="text/javascript"></script>
+        <script src="third-party/jQuery-UI-FileInput/js/fileinput.jquery.js" type="text/javascript"></script>
+        <!--init for this page-->
+        <script type="text/javascript" src="js/demo.js"></script>
+<script>
+$('.go').click(function(){
+     // go button has been clicked, populate:
+     populate();
+ });
+$('#the_artist').keypress(function(event){
+  var keycode = (event.keyCode ? event.keyCode : event.which);
+  if(keycode == '13'){
+   populate();
+  }
+ 
+});
+//      var band = $('#the_artist').val(),
+/* Backbone.js stuff for MVC: 
+
+(function ($) {
+    Friend = Backbone.Model.extend({
+    //Create a model to hold friend atribute
+    name: null
+  });
+  Friends = Backbone.Collection.extend({
+    //This is our Friends collection and holds our Friend models
+    initialize: function (models, options) {
+      this.bind("add", options.view.addFriendLi);
+      //Listen for new additions to the collection and call a view function if so
+    }
+  });
+  AppView = Backbone.View.extend({
+    el: $("body"),
+    initialize: function () {
+      this.friends = new Friends( null, { view: this });
+      //Create a friends collection when the view is initialized.
+      //Pass it a reference to this view to create a connection between the two
+    },
+    events: {
+      "click #add-friend":  "showPrompt",
+    },
+    showPrompt: function () {
+      var friend_name = prompt("Who is your friend?");
+     var friend_model = new Friend({ name: friend_name
+      });
+      //Add a new friend model to our friend collection
+      this.friends.add( friend_model );
+    },
+    addFriendLi: function (model) {
+      //The parameter passed is a reference to the model that was added
+      $("#friends-list").html("<li>" + model.get('name') + "</li>");
+      $("#friends-list2").html("<li>" + model.get('name') + "</li>");
+      //Use .get to receive attributes of the model
+              }
+  });
+var appview = new AppView;
+})(jQuery);
+
+// JSON and AJAX stuff that works. Nest.JS is included now.
+
+$.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",
+  {
+    tags: "gulmarg",
+    tagmode: "any",
+    format: "json"
+  },
+  function(data) {
+    $.each(data.items, function(i,item){
+      $("<img/>").attr("src", item.media.m).appendTo("#images");
+      if ( i == 5 ) return false;
+    });
+  });
+
+var $res = $('#result');
+
+$.ajaxSetup({
+  dataType: 'jsonp',
+  timeout: 3000,
+  cache: true,
+  error: function(jqXHR, textStatus, errorThrown) {
+    $res.append('Uncaught error: ' + textStatus + ', ' + errorThrown);
+  }
+});
+
+$.ajax({
+  url: 'http://developer.echonest.com/api/v4/artist/search',
+  data: 'api_key=WDYCZCJAXVBSXH24U&format=jsonp&name=radiohead',
+  success: function(data) {
+    if (data.response.status.code !== 0) {
+      $res.append('Error: ' + data.response.status.message);
+    } else {
+      var artists = data.response.artists;
+      if (artists.length > 0) {
+        $res.append(artists[0].name);
+      } else {
+        $res.append('No artist');
+      }
+    }
+  }
+});
+*/
+</script>
+<div id="test"></div>
+<div id="images"></div>
+
+  </body>
+</html>
